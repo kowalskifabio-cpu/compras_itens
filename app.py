@@ -91,7 +91,7 @@ if file:
             # Criando as Três Abas: Visão Estratégica, Gráfico Dedicado para Impressão e Análise por Item
             tab1, tab_print, tab2 = st.tabs(["📊 Visão Executiva Estratégica", "🖨️ Gráfico de Totais (Impressão)", "🔍 Detalhado por Item"])
 
-            # --- ABA 1: TUDO O QUE ESTAVA ANTES (Excluindo o gráfico de barras duplicado) ---
+            # --- ABA 1: TUDO O QUE ESTAVA ANTES ---
             with tab1:
                 # Filtro de Pareto aplicado apenas para os visuais desta aba
                 df_resumo_tab1 = df_resumo[df_resumo['Curva_ABC'].isin(sel_pareto)]
@@ -104,7 +104,6 @@ if file:
 
                 st.markdown("---")
                 
-                # Deixou de ser 2 colunas nessa seção superior para dar foco total ao Pareto da aba executiva
                 st.subheader("🎯 Pareto: Top 15 Itens por Impacto")
                 fig_pareto = go.Figure()
                 fig_pareto.add_trace(go.Bar(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Gasto_Total'][:15], name='Gasto R$'))
@@ -122,7 +121,7 @@ if file:
                         st.table(risco_maximo[['Produto', 'Preço_Inicial', 'Preço_Atual', 'Variacao_Perc', 'Gasto_Total']])
                 
                 sucessos = df_resumo_tab1[(df_resumo_tab1['Curva_ABC'] == 'A') & (df_resumo_tab1['Variacao_Perc'] < 0)]
-                if not sucessos.empty:
+                if not successes.empty:
                     st.success(f"✅ **BENCHMARK:** Você conseguiu redução em {len(sucessos)} itens estratégicos (Curva A). Verifique o que foi feito aqui para replicar nos outros itens.")
 
                 st.subheader("📑 Tabela Analítica Detalhada")
@@ -154,6 +153,9 @@ if file:
                     dist_data['Texto_Rótulo'] = dist_data.apply(lambda r: f"{int(r['Quantidade'])} ({r['Percentual']:.1f}%)", axis=1)
                 else:
                     dist_data['Texto_Rótulo'] = "0"
+                
+                # --- SOLICITAÇÃO DO USUÁRIO: SOMATÓRIO EXIBIDO DE FORMA EXTERNA E CLARA ---
+                st.info(f"📈 **Somatório Geral do Período:** {int(total_itens_grafico)} itens processados de acordo com os critérios selecionados.")
                 
                 # Gráfico gerado em container de largura total expandida para não achatar na folha impressa
                 fig_bar_print = px.bar(dist_data, x='Categoria', y='Quantidade', color='Categoria',
