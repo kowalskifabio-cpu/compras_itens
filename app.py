@@ -91,7 +91,7 @@ if file:
             # Criando as Três Abas: Visão Estratégica, Gráfico Dedicado para Impressão e Análise por Item
             tab1, tab_print, tab2 = st.tabs(["📊 Visão Executiva Estratégica", "🖨️ Gráfico de Totais (Impressão)", "🔍 Detalhado por Item"])
 
-            # --- ABA 1: VISÃO EXECUTIVA ESTRATÉGICA (Com os dois gráficos lado a lado) ---
+            # --- ABA 1: TUDO O QUE ESTAVA ANTES ---
             with tab1:
                 # Filtro de Pareto aplicado apenas para os visuais desta aba
                 df_resumo_tab1 = df_resumo[df_resumo['Curva_ABC'].isin(sel_pareto)]
@@ -104,40 +104,14 @@ if file:
 
                 st.markdown("---")
                 
-                # Renderização lado a lado na Aba 1
-                c_left, c_right = st.columns(2)
-                
-                with c_left:
-                    st.subheader("📊 Distribuição por Categoria de Preço")
-                    dist_data_tab1 = df_resumo_tab1['Categoria_Preco'].value_counts().reset_index()
-                    dist_data_tab1.columns = ['Categoria', 'Quantidade']
-                    dist_data_tab1 = dist_data_tab1.sort_values('Categoria')
-                    
-                    # Cálculo do percentual estruturado para o topo da barra
-                    total_itens_tab1 = dist_data_tab1['Quantidade'].sum()
-                    if total_itens_tab1 > 0:
-                        dist_data_tab1['Percentual'] = (dist_data_tab1['Quantidade'] / total_itens_tab1) * 100
-                        dist_data_tab1['Texto_Rótulo'] = dist_data_tab1.apply(lambda r: f"{int(r['Quantidade'])} ({r['Percentual']:.1f}%)", axis=1)
-                    else:
-                        dist_data_tab1['Texto_Rótulo'] = "0"
-                        
-                    st.info(f"📈 **Somatório Geral:** {int(total_itens_tab1)} itens exibidos no gráfico.")
-                    
-                    fig_bar_tab1 = px.bar(dist_data_tab1, x='Categoria', y='Quantidade', color='Categoria',
-                                          text='Texto_Rótulo', color_discrete_sequence=px.colors.qualitative.Safe)
-                    fig_bar_tab1.update_traces(textposition='outside', textfont_size=11)
-                    fig_bar_tab1.update_layout(margin=dict(l=20, r=20, t=20, b=20), showlegend=False)
-                    st.plotly_chart(fig_bar_tab1, use_container_width=True)
-
-                with c_right:
-                    st.subheader("🎯 Pareto: Top 15 Itens por Impacto")
-                    fig_pareto = go.Figure()
-                    fig_pareto.add_trace(go.Bar(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Gasto_Total'][:15], name='Gasto R$'))
-                    fig_pareto.add_trace(go.Scatter(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Perc_Acumulado'][:15], 
-                                                    name='% Acumulado', yaxis='y2', line=dict(color='red')))
-                    fig_pareto.update_layout(yaxis2=dict(overlaying='y', side='right', range=[0, 100]), 
-                                             xaxis=dict(tickangle=-45), showlegend=False, margin=dict(l=20, r=20, t=20, b=20))
-                    st.plotly_chart(fig_pareto, use_container_width=True)
+                st.subheader("🎯 Pareto: Top 15 Itens por Impacto")
+                fig_pareto = go.Figure()
+                fig_pareto.add_trace(go.Bar(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Gasto_Total'][:15], name='Gasto R$'))
+                fig_pareto.add_trace(go.Scatter(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Perc_Acumulado'][:15], 
+                                                name='% Acumulado', yaxis='y2', line=dict(color='red')))
+                fig_pareto.update_layout(yaxis2=dict(overlaying='y', side='right', range=[0, 100]), 
+                                         xaxis=dict(tickangle=-45), showlegend=False, margin=dict(t=20))
+                st.plotly_chart(fig_pareto, use_container_width=True)
 
                 st.subheader("🧠 Pontos Cegos e Oportunidades")
                 risco_maximo = df_resumo_tab1[(df_resumo_tab1['Curva_ABC'] == 'A') & (df_resumo_tab1['Variacao_Perc'] > 0.10)]
@@ -180,7 +154,8 @@ if file:
                 else:
                     dist_data['Texto_Rótulo'] = "0"
                 
-                st.info(f"📈 **Somatório Geral do Período:** {int(total_itens_grafico)} itens processados de acordo com os critérios selecionados.")
+                # --- ALTERAÇÃO SOLICITADA: SOMATÓRIO EXIBIDO EM UMA LINHA LIMPA FORA DO GRÁFICO ---
+                st.markdown(f"### **Total de Itens: {int(total_itens_grafico)}**")
                 
                 # Gráfico gerado em container de largura total expandida para não achatar na folha impressa
                 fig_bar_print = px.bar(dist_data, x='Categoria', y='Quantidade', color='Categoria',
