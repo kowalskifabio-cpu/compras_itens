@@ -110,8 +110,20 @@ if file:
                     dist_data = df_resumo_tab1['Categoria_Preco'].value_counts().reset_index()
                     dist_data.columns = ['Categoria', 'Quantidade']
                     dist_data = dist_data.sort_values('Categoria')
+                    
+                    # Cálculo do percentual para colocar em cima da barra
+                    total_itens_grafico = dist_data['Quantidade'].sum()
+                    if total_itens_grafico > 0:
+                        dist_data['Percentual'] = (dist_data['Quantidade'] / total_itens_grafico) * 100
+                        # Criando string personalizada com a Qtd absoluta e a representatividade percentual
+                        dist_data['Texto_Rótulo'] = dist_data.apply(lambda r: f"{int(r['Quantidade'])} ({r['Percentual']:.1f}%)", axis=1)
+                    else:
+                        dist_data['Texto_Rótulo'] = "0"
+                    
+                    # Alterado parâmetro text para refletir a nova string com percentuais calculados
                     fig_bar = px.bar(dist_data, x='Categoria', y='Quantidade', color='Categoria',
-                                     text_auto=True, color_discrete_sequence=px.colors.qualitative.Safe)
+                                     text='Texto_Rótulo', color_discrete_sequence=px.colors.qualitative.Safe)
+                    fig_bar.update_traces(textposition='outside') # Força a exibição do texto fora da barra
                     st.plotly_chart(fig_bar, use_container_width=True)
 
                 with c_right:
