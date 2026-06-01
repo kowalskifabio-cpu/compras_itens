@@ -88,10 +88,10 @@ if file:
         if not df_f.empty:
             df_resumo, df_hist = calcular_analytics(df_f)
             
-            # Criando as Abas
-            tab1, tab2 = st.tabs(["📊 Visão Executiva Estratégica", "🔍 Detalhado por Item"])
+            # Criando as Três Abas: Visão Estratégica, Gráfico Dedicado para Impressão e Análise por Item
+            tab1, tab_print, tab2 = st.tabs(["📊 Visão Executiva Estratégica", "🖨️ Gráfico de Totais (Impressão)", "🔍 Detalhado por Item"])
 
-            # --- ABA 1: TUDO O QUE ESTAVA ANTES ---
+            # --- ABA 1: TUDO O QUE ESTAVA ANTES (Excluindo o gráfico de barras duplicado) ---
             with tab1:
                 # Filtro de Pareto aplicado apenas para os visuais desta aba
                 df_resumo_tab1 = df_resumo[df_resumo['Curva_ABC'].isin(sel_pareto)]
@@ -104,37 +104,15 @@ if file:
 
                 st.markdown("---")
                 
-                c_left, c_right = st.columns(2)
-                with c_left:
-                    st.subheader("📊 Distribuição por Categoria de Preço")
-                    dist_data = df_resumo_tab1['Categoria_Preco'].value_counts().reset_index()
-                    dist_data.columns = ['Categoria', 'Quantidade']
-                    dist_data = dist_data.sort_values('Categoria')
-                    
-                    # Cálculo do percentual para colocar em cima da barra
-                    total_itens_grafico = dist_data['Quantidade'].sum()
-                    if total_itens_grafico > 0:
-                        dist_data['Percentual'] = (dist_data['Quantidade'] / total_itens_grafico) * 100
-                        # Criando string personalizada com a Qtd absoluta e a representatividade percentual
-                        dist_data['Texto_Rótulo'] = dist_data.apply(lambda r: f"{int(r['Quantidade'])} ({r['Percentual']:.1f}%)", axis=1)
-                    else:
-                        dist_data['Texto_Rótulo'] = "0"
-                    
-                    # Alterado parâmetro text para refletir a nova string com percentuais calculados
-                    fig_bar = px.bar(dist_data, x='Categoria', y='Quantidade', color='Categoria',
-                                     text='Texto_Rótulo', color_discrete_sequence=px.colors.qualitative.Safe)
-                    fig_bar.update_traces(textposition='outside') # Força a exibição do texto fora da barra
-                    st.plotly_chart(fig_bar, use_container_width=True)
-
-                with c_right:
-                    st.subheader("🎯 Pareto: Top 15 Itens por Impacto")
-                    fig_pareto = go.Figure()
-                    fig_pareto.add_trace(go.Bar(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Gasto_Total'][:15], name='Gasto R$'))
-                    fig_pareto.add_trace(go.Scatter(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Perc_Acumulado'][:15], 
-                                                    name='% Acumulado', yaxis='y2', line=dict(color='red')))
-                    fig_pareto.update_layout(yaxis2=dict(overlaying='y', side='right', range=[0, 100]), 
-                                             xaxis=dict(tickangle=-45), showlegend=False, margin=dict(t=20))
-                    st.plotly_chart(fig_pareto, use_container_width=True)
+                # Deixou de ser 2 colunas nessa seção superior para dar foco total ao Pareto da aba executiva
+                st.subheader("🎯 Pareto: Top 15 Itens por Impacto")
+                fig_pareto = go.Figure()
+                fig_pareto.add_trace(go.Bar(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Gasto_Total'][:15], name='Gasto R$'))
+                fig_pareto.add_trace(go.Scatter(x=df_resumo_tab1['Produto'][:15], y=df_resumo_tab1['Perc_Acumulado'][:15], 
+                                                name='% Acumulado', yaxis='y2', line=dict(color='red')))
+                fig_pareto.update_layout(yaxis2=dict(overlaying='y', side='right', range=[0, 100]), 
+                                         xaxis=dict(tickangle=-45), showlegend=False, margin=dict(t=20))
+                st.plotly_chart(fig_pareto, use_container_width=True)
 
                 st.subheader("🧠 Pontos Cegos e Oportunidades")
                 risco_maximo = df_resumo_tab1[(df_resumo_tab1['Curva_ABC'] == 'A') & (df_resumo_tab1['Variacao_Perc'] > 0.10)]
@@ -159,7 +137,37 @@ if file:
                              .style.format({'Variacao_Perc': '{:.2%}', 'Gasto_Total': 'R$ {:,.2f}', 'Preço_Inicial': 'R$ {:,.2f}', 'Preço_Atual': 'R$ {:,.2f}'})
                              .apply(styler, axis=1), use_container_width=True)
 
-            # --- ABA 2: MELHORIAS POR ITEM ---
+            # --- ABA DESTINADA EXCLUSIVAMENTE À IMPRESSÃO DO GRÁFICO DE TOTAIS ---
+            with tab_print:
+                st.subheader("📊 Distribuição por Categoria de Preço")
+                st.caption("Esta aba foi otimizada para impressão em folha cheia (A4 Paisagem/Retrato). Use o atalho Ctrl+P do navegador.")
+                
+                df_resumo_print = df_resumo[df_resumo['Curva_ABC'].isin(sel_pareto)]
+                dist_data = df_resumo_print['Categoria_Preco'].value_counts().reset_index()
+                dist_data.columns = ['Categoria', 'Quantidade']
+                dist_data = dist_data.sort_values('Categoria')
+                
+                # Cálculo do percentual estruturado para o topo da barra
+                total_itens_grafico = dist_data['Quantidade'].sum()
+                if total_itens_grafico > 0:
+                    dist_data['Percentual'] = (dist_data['Quantidade'] / total_itens_grafico) * 100
+                    dist_data['Texto_Rótulo'] = dist_data.apply(lambda r: f"{int(r['Quantidade'])} ({r['Percentual']:.1f}%)", axis=1)
+                else:
+                    dist_data['Texto_Rótulo'] = "0"
+                
+                # Gráfico gerado em container de largura total expandida para não achatar na folha impressa
+                fig_bar_print = px.bar(dist_data, x='Categoria', y='Quantidade', color='Categoria',
+                                 text='Texto_Rótulo', color_discrete_sequence=px.colors.qualitative.Safe)
+                fig_bar_print.update_traces(textposition='outside', textfont_size=13) 
+                fig_bar_print.update_layout(
+                    xaxis_title="Faixas de Variação de Preço",
+                    yaxis_title="Quantidade Absoluta de Itens",
+                    legend_title="Categorias",
+                    margin=dict(l=40, r=40, t=40, b=40)
+                )
+                st.plotly_chart(fig_bar_print, use_container_width=True)
+
+            # --- ABA 3: MELHORIAS POR ITEM ---
             with tab2:
                 st.subheader("🔍 Lupa sobre o Produto")
                 
@@ -192,7 +200,6 @@ if file:
                 
                 with g2:
                     st.markdown("**Dispersão: Volume vs Preço**")
-                    # Ajuda a ver se o preço cai quando a quantidade aumenta (ganho de escala)
                     fig_scatter = px.scatter(item_data, x='Quantidade', y='Vlr. Unitário', 
                                              color='Fornecedor', size='Vlr. Total',
                                              title="Escalabilidade e Fornecedores")
