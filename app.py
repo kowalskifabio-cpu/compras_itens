@@ -121,7 +121,7 @@ if file:
                         st.table(risco_maximo[['Produto', 'Preço_Inicial', 'Preço_Atual', 'Variacao_Perc', 'Gasto_Total']])
                 
                 sucessos = df_resumo_tab1[(df_resumo_tab1['Curva_ABC'] == 'A') & (df_resumo_tab1['Variacao_Perc'] < 0)]
-                if not successes.empty:
+                if not sucessos.empty: # Corrigido de 'successes' para 'sucessos' conforme a declaração da variável
                     st.success(f"✅ **BENCHMARK:** Você conseguiu redução em {len(sucessos)} itens estratégicos (Curva A). Verifique o que foi feito aqui para replicar nos outros itens.")
 
                 st.subheader("📑 Tabela Analítica Detalhada")
@@ -154,7 +154,6 @@ if file:
                 else:
                     dist_data['Texto_Rótulo'] = "0"
                 
-                # --- SOLICITAÇÃO DO USUÁRIO: SOMATÓRIO EXIBIDO DE FORMA EXTERNA E CLARA ---
                 st.info(f"📈 **Somatório Geral do Período:** {int(total_itens_grafico)} itens processados de acordo com os critérios selecionados.")
                 
                 # Gráfico gerado em container de largura total expandida para não achatar na folha impressa
