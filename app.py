@@ -169,6 +169,56 @@ if file:
                 )
                 st.plotly_chart(fig_bar_print, use_container_width=True)
 
+                # =====================================================
+                # KPIs DA VISÃO EXECUTIVA REPLICADOS PARA IMPRESSÃO
+                # =====================================================
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                gasto_filtrado = df_resumo_print['Gasto_Total'].sum()
+                itens_criticos = len(
+                    df_resumo_print[
+                        df_resumo_print['Categoria_Preco'] == "6. Acima de 30%"
+                    ]
+                )
+                
+                itens_curva_a = len(
+                    df_resumo_print[
+                        df_resumo_print['Curva_ABC'] == "A"
+                    ]
+                )
+                
+                reducoes_obtidas = len(
+                    df_resumo_print[
+                        df_resumo_print['Categoria_Preco'] == "1. Redução"
+                    ]
+                )
+                
+                k1, k2, k3, k4 = st.columns(4)
+                
+                with k1:
+                    st.metric(
+                        "Gasto Filtrado",
+                        f"R$ {gasto_filtrado:,.2f}"
+                    )
+                
+                with k2:
+                    st.metric(
+                        "Itens Críticos (>30%)",
+                        itens_criticos
+                    )
+                
+                with k3:
+                    st.metric(
+                        "Itens Curva A",
+                        itens_curva_a
+                    )
+                
+                with k4:
+                    st.metric(
+                        "Reduções Obtidas",
+                        reducoes_obtidas
+                    )
             # --- ABA 3: MELHORIAS POR ITEM ---
             with tab2:
                 st.subheader("🔍 Lupa sobre o Produto")
